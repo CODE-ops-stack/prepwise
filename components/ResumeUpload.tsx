@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function ResumeUpload() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -23,14 +26,19 @@ export default function ResumeUpload() {
 
       if (!response.ok) {
         setError(data.error || "Failed to upload resume");
+        toast.error(data.error || "Failed to upload resume");
         return;
       }
 
-      alert("Resume uploaded successfully!");
+      toast.success("Resume uploaded successfully!");
       form?.reset();
+      
+      // Refresh the page to show updated resume
+      router.refresh();
     } catch (err) {
       const message = err instanceof Error ? err.message : "An error occurred";
       setError(message);
+      toast.error(message);
       console.error("Error uploading resume:", err);
     } finally {
       setLoading(false);

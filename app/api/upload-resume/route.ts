@@ -1,7 +1,7 @@
 // app/api/upload-resume/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
-import { db } from '@/firebase/admin';
+import { db, auth } from '@/firebase/admin';
 import * as admin from 'firebase-admin';
 
 // Cloudinary config
@@ -30,6 +30,25 @@ async function uploadToCloudinary(buffer: Buffer): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
+    // Get user ID from authorization header (passed by client)
+    const authHeader = req.headers.get('authorization');
+    const idToken = authHeader?.replace('Bearer ', '');
+
+    if (!idToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Verify the token and get user
+    let decodedToken;
+    try {
+      decodedToken = await auth.verifyIdToken(idToken);
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
+    const userId = decodedToken.uid;
+
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
 
@@ -44,15 +63,14 @@ export async function POST(req: NextRequest) {
     // Upload to Cloudinary
     const url = await uploadToCloudinary(buffer);
 
-    // Save URL + meta to Firestore (server-side via admin SDK)
-    await db.collection('resumes').add({
-      url,
-      fileName: file.name,
-      fileSize: file.size,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    // Update user document with resume URL
+    await db.collection('users').doc(userId).update({
+      resumeUrl: url,
+      resumeFileName: file.name,
+      resumeUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
-    return NextResponse.json({ url }, { status: 200 });
+    return NextResponse.json({ url, success: true }, { status: 200 });
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });

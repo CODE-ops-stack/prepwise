@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { auth } from "@/firebase/client";
 
 export default function ResumeUpload() {
   const [loading, setLoading] = useState(false);
@@ -15,11 +16,24 @@ export default function ResumeUpload() {
       setLoading(true);
       setError("");
 
+      // Get the current user's ID token
+      const user = auth.currentUser;
+      if (!user) {
+        setError("Please login to upload resume");
+        toast.error("Please login to upload resume");
+        return;
+      }
+
+      const idToken = await user.getIdToken();
+
       const form = e.currentTarget;
       const formData = new FormData(form);
       const response = await fetch("/api/upload-resume", {
         method: "POST",
         body: formData,
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
       });
 
       const data = await response.json();

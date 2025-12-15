@@ -15,7 +15,14 @@ const InterviewCard = async ({
   type,
   techstack,
   createdAt,
-}: InterviewCardProps) => {
+}: {
+  interviewId?: string;
+  userId?: string;
+  role: string;
+  type: string;
+  techstack?: string[];
+  createdAt?: string;
+}) => {
   const feedback =
     userId && interviewId
       ? await getFeedbackByInterviewId({
@@ -74,7 +81,6 @@ const InterviewCard = async ({
               />
               <p>{formattedDate}</p>
             </div>
-
             <div className="flex flex-row gap-2 items-center">
               <Image src="/star.svg" width={22} height={22} alt="star" />
               <p>{feedback?.totalScore || "---"}/100</p>
@@ -89,7 +95,8 @@ const InterviewCard = async ({
         </div>
 
         <div className="flex flex-row justify-between">
-          <DisplayTechIcons techStack={techstack} />
+          {/* Defensive: always pass an array */}
+          <DisplayTechIcons techStack={Array.isArray(techstack) ? techstack : []} />
 
           <Button className="btn-primary">
             <Link

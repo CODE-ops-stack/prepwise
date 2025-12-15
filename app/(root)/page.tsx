@@ -1,25 +1,29 @@
 import Link from "next/link";
 import Image from "next/image";
-
+import ResumeUpload from "@/components/ResumeUpload";
+import ProfileResume from "@/components/ProfileResume";
 import { Button } from "@/components/ui/button";
 import InterviewCard from "@/components/InterviewCard";
-
 import { getCurrentUser } from "@/lib/actions/auth.action";
-import {
-  getInterviewsByUserId,
-  getLatestInterviews,
-} from "@/lib/actions/general.action";
+import { getInterviewsByUserId, getLatestInterviews } from "@/lib/actions/general.action";
+import { getUserById } from "@/lib/actions/user.action";
+import type { Interview } from "@/types/interview";
 
 async function Home() {
   const user = await getCurrentUser();
+  if (!user) {
+    return <div>Please login to continue</div>;
+  }
 
-  const [userInterviews, allInterview] = await Promise.all([
-    getInterviewsByUserId(user?.id!),
-    getLatestInterviews({ userId: user?.id! }),
+  const [userInterviews, allInterview, userDetails] = await Promise.all([
+    getInterviewsByUserId(user.id),
+    getLatestInterviews({ userId: user.id }),
+    getUserById(user.id)
   ]);
 
-  const hasPastInterviews = userInterviews?.length! > 0;
-  const hasUpcomingInterviews = allInterview?.length! > 0;
+  const hasPastInterviews = userInterviews && userInterviews.length > 0;
+  const hasUpcomingInterviews = allInterview && allInterview.length > 0;
+  const resumeUrl = userDetails?.resumeUrl ?? "";
 
   return (
     <>
@@ -29,12 +33,10 @@ async function Home() {
           <p className="text-lg">
             Practice real interview questions & get instant feedback
           </p>
-
           <Button asChild className="btn-primary max-sm:w-full">
             <Link href="/interview">Start an Interview</Link>
           </Button>
         </div>
-
         <Image
           src="/robot.png"
           alt="robo-dude"
@@ -45,19 +47,24 @@ async function Home() {
       </section>
 
       <section className="flex flex-col gap-6 mt-8">
-        <h2>Your Interviews</h2>
+        <h2>Resume/Profile</h2>
+        <ResumeUpload />
+        <ProfileResume resumeUrl={resumeUrl} />
+      </section>
 
+      <section className="flex flex-col gap-6 mt-8">
+        <h2>Your Interviews</h2>
         <div className="interviews-section">
           {hasPastInterviews ? (
-            userInterviews?.map((interview) => (
+            userInterviews?.map((interview: Interview) => (
               <InterviewCard
                 key={interview.id}
-                userId={user?.id}
+                userId={user.id}
                 interviewId={interview.id}
                 role={interview.role}
                 type={interview.type}
                 techstack={interview.techstack}
-                createdAt={interview.createdAt}
+                createdAt={interview.createdAt.toString()}
               />
             ))
           ) : (
@@ -68,18 +75,17 @@ async function Home() {
 
       <section className="flex flex-col gap-6 mt-8">
         <h2>Take Interviews</h2>
-
         <div className="interviews-section">
           {hasUpcomingInterviews ? (
-            allInterview?.map((interview) => (
+            allInterview?.map((interview: Interview) => (
               <InterviewCard
                 key={interview.id}
-                userId={user?.id}
+                userId={user.id}
                 interviewId={interview.id}
                 role={interview.role}
                 type={interview.type}
                 techstack={interview.techstack}
-                createdAt={interview.createdAt}
+                createdAt={interview.createdAt.toString()}
               />
             ))
           ) : (

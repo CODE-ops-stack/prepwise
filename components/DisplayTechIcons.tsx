@@ -1,13 +1,14 @@
 import Image from "next/image";
-
 import { cn, getTechLogos } from "@/lib/utils";
 
-const DisplayTechIcons = async ({ techStack }: TechIconProps) => {
+const DisplayTechIcons = async ({ techStack = [] }: { techStack?: string[] }) => {
+  // Defensive: always ensure array for techIcons
   const techIcons = await getTechLogos(techStack);
+  const safeTechIcons = Array.isArray(techIcons) ? techIcons : [];
 
   return (
     <div className="flex flex-row">
-      {techIcons.slice(0, 3).map(({ tech, url }, index) => (
+      {safeTechIcons.slice(0, 3).map(({ tech, url }, index) => (
         <div
           key={tech}
           className={cn(
@@ -16,7 +17,6 @@ const DisplayTechIcons = async ({ techStack }: TechIconProps) => {
           )}
         >
           <span className="tech-tooltip">{tech}</span>
-
           <Image
             src={url}
             alt={tech}

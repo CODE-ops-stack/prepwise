@@ -1,3 +1,4 @@
+//page.tsx from signup in auth folder
 import AuthForm from "@/components/AuthForm";
 
 const Page = () => {

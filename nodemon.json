@@ -1,0 +1,21 @@
+{
+  "watch": [
+    "app",
+    "components",
+    "lib",
+    "firebase",
+    "prisma",
+    "constants",
+    "types"
+  ],
+  "ignore": [
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    ".next",
+    "node_modules",
+    "dist"
+  ],
+  "ext": "ts,tsx,js,jsx,json",
+  "delay": 500,
+  "exec": "next dev --turbopack"
+}

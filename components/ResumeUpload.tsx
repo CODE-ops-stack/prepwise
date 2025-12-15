@@ -26,8 +26,9 @@ export default function ResumeUpload() {
 
       const idToken = await user.getIdToken();
 
-      const form = e.currentTarget;
-      const formData = new FormData(form);
+      // Create FormData from the form element
+      const formData = new FormData(e.currentTarget as HTMLFormElement);
+      
       const response = await fetch("/api/upload-resume", {
         method: "POST",
         body: formData,
@@ -45,7 +46,7 @@ export default function ResumeUpload() {
       }
 
       toast.success("Resume uploaded successfully!");
-      form?.reset();
+      e.currentTarget.reset();
       
       // Refresh the page to show updated resume
       router.refresh();

@@ -26,9 +26,24 @@ export default function ResumeUpload() {
 
       const idToken = await user.getIdToken();
 
-      // Create FormData from the form element
-      const formData = new FormData(e.currentTarget as HTMLFormElement);
-      
+      // Create FormData from the form element. Some environments may not
+      // provide an HTMLFormElement on `e.currentTarget`, so do a runtime
+      // check and fall back to querying the form by id.
+      let formEl: HTMLFormElement | null = null;
+      if (e.currentTarget && (e.currentTarget as Element).tagName === "FORM") {
+        formEl = e.currentTarget as HTMLFormElement;
+      } else {
+        // fallback: locate the form by id
+        formEl = document.getElementById("upload-form") as HTMLFormElement | null;
+      }
+
+      if (!formEl) {
+        setError("Unable to locate the upload form element.");
+        toast.error("Upload form not found. Try refreshing the page.");
+        return;
+      }
+
+      const formData = new FormData(formEl);
       const response = await fetch("/api/upload-resume", {
         method: "POST",
         body: formData,

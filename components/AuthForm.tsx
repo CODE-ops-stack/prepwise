@@ -89,20 +89,21 @@ const AuthForm = ({ type }: { type: FormType }) => {
         toast.success("Signed in successfully.");
         router.push("/");
       }
-    } catch (error: any) {
-  let displayMsg = "There was an error: ";
-  if (error.code === "auth/email-already-in-use") {
-    displayMsg += "That email is already registered. Please log in or use Forgot Password.";
-  } else if (error.code === "auth/invalid-email") {
-    displayMsg += "Invalid email address format.";
-  } else if (error.code === "auth/weak-password") {
-    displayMsg += "Password is too weak. Please use a stronger password.";
-  } else {
-    displayMsg += error.message || "Unknown error occurred.";
-  }
-  console.error("[SignUp Error]", error);
-  toast.error(displayMsg);
-}
+    } catch (error: unknown) {
+      const err = error as { code?: string; message?: string } | undefined;
+      let displayMsg = "There was an error: ";
+      if (err?.code === "auth/email-already-in-use") {
+        displayMsg += "That email is already registered. Please log in or use Forgot Password.";
+      } else if (err?.code === "auth/invalid-email") {
+        displayMsg += "Invalid email address format.";
+      } else if (err?.code === "auth/weak-password") {
+        displayMsg += "Password is too weak. Please use a stronger password.";
+      } else {
+        displayMsg += err?.message || "Unknown error occurred.";
+      }
+      console.error("[SignUp Error]", err);
+      toast.error(displayMsg);
+    }
 
   };
 
